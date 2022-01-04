@@ -60,7 +60,8 @@ jobs:
     - name: 'Run Azure webapp deploy action using publish profile credentials'
       uses: azure/webapps-deploy@v2
       with: 
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}/stg # Replace with your app name
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        slot-name: stg
         package: './app'
 
     # - name: Swap Slot
