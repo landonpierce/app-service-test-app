@@ -62,7 +62,7 @@ jobs:
       with: 
         app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
         slot-name: stg
-        package: './app'
+        package: './app/artifact'
 
     # - name: Swap Slot
     #   uses: azure/CLI@v1
