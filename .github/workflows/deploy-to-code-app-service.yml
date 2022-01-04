@@ -27,16 +27,17 @@ jobs:
       run: |
         dotnet restore
         dotnet build --configuration Release
-        dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app'
+        dotnet publish -c Release -o './app'
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.3.1
       with:
-        path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app'
+        path: './app'
 
   deploy:
     runs-on: ubuntu-latest
     environment: prod
+    needs: build
     steps:
 
     - name: 'Checkout GitHub Action'
