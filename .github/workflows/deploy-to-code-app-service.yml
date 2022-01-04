@@ -8,9 +8,59 @@ name: Deploy To Code Based App Service
 
 jobs:
 
-  deploy-to-slot:
+  build:
     runs-on: ubuntu-latest
+    environment: prod
     steps:
 
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@master
+
+
+
+    - name: Setup Dotnet 3.3.x
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '6.0.x'
+
+    - name: dotnet build and publish
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+        dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app'
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.3.1
+      with:
+        path: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/app'
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.0
+      with:
+        path: './app'
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Run Azure webapp deploy action using publish profile credentials'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        package: './app'
+
+    - name: Swap Slot
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript:
+          az webapp deployment slot swap -g ${{AZURE_WEBAPP_GROUP}} -n ${{AZURE_WEBAPP_NAME}} --slot stg --target-slot production
