@@ -63,4 +63,4 @@ jobs:
       with:
         azcliversion: 2.30.0
         inlineScript:
-          az webapp deployment slot swap -g ${{AZURE_WEBAPP_GROUP}} -n ${{AZURE_WEBAPP_NAME}} --slot stg --target-slot production
+          az webapp deployment slot swap -g ${{env.AZURE_WEBAPP_GROUP}} -n ${{env.AZURE_WEBAPP_NAME}} --slot stg --target-slot production
