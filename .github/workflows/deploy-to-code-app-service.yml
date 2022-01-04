@@ -1,0 +1,16 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+name: Deploy To Code Based App Service
+
+jobs:
+
+  deploy-to-slot:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
