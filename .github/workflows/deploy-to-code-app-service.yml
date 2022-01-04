@@ -61,7 +61,7 @@ jobs:
       uses: azure/webapps-deploy@v2
       with: 
         app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
-        slot-name: stg
+        # slot-name: stg
         package: './app/artifact'
 
     # - name: Swap Slot
