@@ -37,6 +37,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: prod
+    env:
+      AZURE_WEBAPP_GROUP: ${{secrets.AZURE_WEBAPP_GROUP}}
+      AZURE_WEBAPP_NAME: ${{secrets.AZURE_WEBAPP_GROUP}}
+
     needs: build
     steps:
 
