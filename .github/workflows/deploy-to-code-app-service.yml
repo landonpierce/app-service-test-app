@@ -34,7 +34,7 @@ jobs:
       with:
         path: './app'
 
-  deploy:
+  deploy-and-swap:
     runs-on: ubuntu-latest
     environment: prod
     env:
@@ -58,20 +58,51 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Run Azure webapp deploy action using publish profile credentials'
+    - name: 'Deploy to App Service Slot'
       uses: azure/webapps-deploy@v2
       with: 
         app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
-        # slot-name: stg
+        slot-name: stg
         package: './app/artifact'
 
-    # - name: Swap Slot
-    #   uses: azure/CLI@v1
-    #   with:
-    #     azcliversion: 2.30.0
-    #     inlineScript: |
-    #       az webapp deployment slot swap \
-    #       -g ${{env.AZURE_WEBAPP_GROUP}} \
-    #       -n ${{env.AZURE_WEBAPP_NAME}} \
-    #       --slot stg \
-    #       --target-slot production
+    - name: Swap Slot
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          az webapp deployment slot swap \
+          -g ${{env.AZURE_WEBAPP_GROUP}} \
+          -n ${{env.AZURE_WEBAPP_NAME}} \
+          --slot stg \
+          --target-slot production
+
+  deploy-to-prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      AZURE_WEBAPP_GROUP: appservicedeploymenttest
+      AZURE_WEBAPP_NAME: lpappservicedeploymenttestprod
+
+    needs: deploy-and-swap
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.0
+      with:
+        path: './app'
+
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Attempt To Deploy Straight To Prod'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        slot-name: stg
+        package: './app/artifact'
