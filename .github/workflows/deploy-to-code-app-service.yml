@@ -52,6 +52,7 @@ jobs:
       with:
         path: './app'
 
+
     - name: Azure Login
       uses: azure/login@v1
       with:
