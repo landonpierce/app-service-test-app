@@ -76,7 +76,7 @@ jobs:
           --slot stg \
           --target-slot production
 
-  deploy-to-prod:
+  attempt-deploy-to-prod:
     runs-on: ubuntu-latest
     environment: prod
     env:
