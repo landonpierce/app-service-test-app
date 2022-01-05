@@ -107,3 +107,77 @@ jobs:
           --slot stg \
           --target-slot production
 
+  pe-attempt-deploy-to-prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      AZURE_WEBAPP_GROUP: appservicedeploymenttest
+      AZURE_WEBAPP_NAME: lpprivateendpointtest
+
+    needs: build
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.0
+      with:
+        path: './app'
+
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Attempt To Deploy Straight To Prod'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        package: './app/artifact'
+
+  pe-deploy-and-swap:
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      AZURE_WEBAPP_GROUP: appservicedeploymenttest
+      AZURE_WEBAPP_NAME: lpprivateendpointtest
+
+    needs: pe-attempt-deploy-to-prod
+    if: always()
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.0
+      with:
+        path: './app'
+
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Deploy to App Service Slot'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        slot-name: stg
+        package: './app/artifact'
+
+    - name: Swap Slot
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          az webapp deployment slot swap \
+          -g ${{env.AZURE_WEBAPP_GROUP}} \
+          -n ${{env.AZURE_WEBAPP_NAME}} \
+          --slot stg \
+          --target-slot production
+
+
