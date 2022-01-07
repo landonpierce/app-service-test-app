@@ -107,6 +107,65 @@ jobs:
           --slot stg \
           --target-slot production
 
+  JIT-deploy:
+    runs-on: ubuntu-latest
+    environment: prod
+    env:
+      AZURE_WEBAPP_GROUP: appservicedeploymenttest
+      AZURE_WEBAPP_NAME: lpappservicedeploymenttestprod
+
+    needs: deploy-and-swap
+    if: always()
+    steps:
+
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
+
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v2.1.0
+      with:
+        path: './app'
+
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Add Agent IP to Access Restriction Allow
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          chmod +x $GITHUB_WORKSPACE/.github/scripts/JIT-add-agent-ip-address.sh
+          $GITHUB_WORKSPACE/.github/scripts/JIT-add-agent-ip-address.sh
+        
+    - name: 'Deploy to App Service Slot'
+      uses: azure/webapps-deploy@v2
+      with: 
+        app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+        slot-name: stg
+        package: './app/artifact'
+
+    - name: Swap Slot
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.30.0
+        inlineScript: |
+          az webapp deployment slot swap \
+          -g ${{env.AZURE_WEBAPP_GROUP}} \
+          -n ${{env.AZURE_WEBAPP_NAME}} \
+          --slot stg \
+          --target-slot production
+    - name: Remove Agent IP From Slot Access Restrictions
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          chmod +x $GITHUB_WORKSPACE/.github/scripts/JIT-remove-agent-ip-address.sh
+          $GITHUB_WORKSPACE/.github/scripts/JIT-remove-agent-ip-address.sh
+
+
+
+
   pe-attempt-deploy-to-prod:
     runs-on: ubuntu-latest
     environment: prod
@@ -179,5 +238,3 @@ jobs:
           -n ${{env.AZURE_WEBAPP_NAME}} \
           --slot stg \
           --target-slot production
-
-
