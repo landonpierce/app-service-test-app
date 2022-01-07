@@ -143,7 +143,7 @@ jobs:
       uses: azure/webapps-deploy@v2
       with: 
         app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
-        slot-name: stg
+        slot-name: lock
         package: './app/artifact'
 
     - name: Swap Slot
@@ -154,7 +154,7 @@ jobs:
           az webapp deployment slot swap \
           -g ${{env.AZURE_WEBAPP_GROUP}} \
           -n ${{env.AZURE_WEBAPP_NAME}} \
-          --slot stg \
+          --slot lock \
           --target-slot production
     - name: Remove Agent IP From Slot Access Restrictions
       uses: azure/CLI@v1
